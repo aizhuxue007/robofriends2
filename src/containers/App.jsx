@@ -1,49 +1,45 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import SearchBox from "../components/SearchBox";
 import Scroll from "../components/Scroll";
+import ErrorBoundary from "../components/ErrorBoundary";
 import CardList from "../components/CardList";
 import './App.css'
 
-class App extends Component {
-  constructor() {
-    super()
-    this.state = {
-      robots: [],
-      searchField : ''
-    }
-  }
+const App = () => {
+  const [robots, setRobots] = useState([])
+  const [searchField, setSearchField] = useState('')
 
-  componentDidMount() {
+  useEffect(() => {
     fetch('https://jsonplaceholder.cypress.io/users')
       .then(response => response.json())
-      .then(user => this.setState({ robots: user }))
+      .then(users => setRobots(users))
+  }, [])
+
+  const handleSearchChange = (event) => {
+    setSearchField(event.target.value)
   }
 
-  handleSearchChange = (event) => {
-    this.setState({ searchField: event.target.value })
-  }
+  const filteredRobots = robots.filter(robot => {
+    return robot.name.toLowerCase().includes(searchField.toLowerCase())
+  }) || null
 
-  render() {
-    const { robots, searchField } = this.state
-    const filteredRobots = robots.filter(robot => {
-      return robot.name.toLowerCase().includes(searchField.toLowerCase())
-    }) || null
-
-    { return !filteredRobots ? (
-        <h2 className="tc">Loading</h2>
-      ) :
+  {
+    return !filteredRobots ? (
+      <h2 className="tc">Loading</h2>
+    ) :
       (
         <div className="tc">
           <h1>ROBOFRIENDS</h1>
-          <SearchBox handleSearchChange={this.handleSearchChange}/>
+          <SearchBox handleSearchChange={handleSearchChange} />
           <Scroll>
-            <CardList robots={filteredRobots} />
+            <ErrorBoundary>
+              <CardList robots={filteredRobots} />
+            </ErrorBoundary>
           </Scroll>
         </div>
       )
-    }
-    
   }
+
 }
 
 export default App
